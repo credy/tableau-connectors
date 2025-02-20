@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)https://assets.credy.com/tableau/partners/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta http-equiv="Cache-Control" content="no-store">
+
+    <title>HasOffers partners WDC</title>
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js" type="text/javascript"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+    <script src="https://connectors.tableau.com/libs/tableauwdc-2.3.latest.js" type="text/javascript"></script>
+
+<script type="text/javascript" data-name="TokenSigning" data-by="Web-eID extension" src="chrome-extension://ncibgoaomkmdpilpocfeponihegamlic/token-signing-page-script.js"></script><style type="text/css">
+@font-face {
+	font-family: 'Atlassian Sans';
+	font-style: normal;
+	font-weight: 400 653;
+	font-display: swap;
+	src:
+		local('AtlassianSans'),
+		local('Atlassian Sans Text'),
+		url(https://ds-cdn.prod-east.frontend.public.atl-paas.net/assets/fonts/atlassian-sans/v1/AtlassianSans-latin.woff2)
+			format('woff2');
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+		U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}</style></head>
+
+<body>
+    <div class="container container-table">
+        <div class="row vertical-center-row">
+            <div class="text-center col-md-3 col-md-offset-4">
+
+				<div class="form-group">
+					<label for="apiKey">API Key</label>
+					<input id="apiKey" name="apiKey" class="form-control form-control-lg" type="text" placeholder="NETgsdjgdf8gdfjhopdfsjh">
+					<small id="affiliateHelpBlock" class="form-text text-muted">
+						Your hasoffers network API Key.
+					</small>
+				</div>
+
+                <button type="button" id="submitButton" class="btn btn-success" style="margin: 10px;">Get partner list
+                </button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        (function() {
+            var myConnector = tableau.makeConnector();
+
+            myConnector.getSchema = function(schemaCallback) {
+                var cols = [{
+                    id: "affiliate_id",
+                    dataType: tableau.dataTypeEnum.int
+                }, {
+                    id: "affiliate_name",
+                    dataType: tableau.dataTypeEnum.string
+                }];
+
+                var tableSchema = {
+                    id: "hasoffersPartners",
+                    alias: "HasOffers partners",
+                    columns: cols
+                };
+
+                schemaCallback([tableSchema]);
+            };
+
+            myConnector.getData = function(table, doneCallback) {
+                var connectionData = JSON.parse(tableau.connectionData);
+                var apiKey = connectionData.apiKey;
+
+                $.getJSON(`https://credy.api.hasoffers.com/Apiv3/json?NetworkToken=${apiKey}&Target=Affiliate&Method=findAll&fields[]=company`, function(responseData) {
+                    table.appendRows(      
+                        Object.entries(responseData.response.data).map((row) => {
+                            return { affiliate_id: parseInt(row[1].Affiliate.id), affiliate_name: row[1].Affiliate.company }
+                        })
+                    );
+                    doneCallback();
+                });
+            };
+
+            tableau.registerConnector(myConnector);
+
+            $(document).ready(function() {
+                $("#submitButton").click(function() {
+                    var connectionData = {
+                        apiKey: document.getElementById('apiKey').value,
+                    };
+                    tableau.connectionName = "HasOffers partners";
+                    tableau.connectionData = JSON.stringify(connectionData);
+                    tableau.submit();
+                });
+            });
+
+        })();
+    </script>
+</body></html>
